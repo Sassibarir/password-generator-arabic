@@ -1,0 +1,117 @@
+import itertools
+import random
+
+def generate_token_variations(token):
+    variations = set()
+    substitutions = {
+        'a': ['@', '4', 'а'],
+        'b': ['8', '6'],
+        'c': ['(', '<'],
+        'e': ['3', '€'],
+        'g': ['9', '6'],
+        'i': ['1', '!'],
+        'o': ['0', '○'],
+        's': ['$', '5', '§'],
+        't': ['7', '+'],
+        'z': ['2'],
+        '0': ['O', 'o'],
+        '1': ['!', 'I'],
+        '3': ['#', '€'],
+        '5': ['S', '%'],
+        
+        # إضافة الأحرف العربية
+        'ا': ['@', 'a', 'أ', 'إ'],
+        'ل': ['7', 'l', 'ل'],
+        'ب': ['8', 'b', 'ب'],
+        'ي': ['3', 'i', 'ي'],
+        'ت': ['7', 't', 'ت'],
+        'ه': ['7', 'h', 'ه'],
+        'س': ['5', 's', 'س'],
+        'م': ['m', 'م'],
+        'د': ['d', 'د'],
+        'ر': ['r', 'ر'],
+        'و': ['w', 'و'],
+        'ك': ['ك', 'k'],
+        'ص': ['5', 'ص', 's'],
+        'ق': ['ق', 'q'],
+        'ف': ['ف', 'f'],
+        'ن': ['ن', 'n'],
+        'ح': ['ح', 'h'],
+        'ج': ['ج', 'g'],
+        'ش': ['ش', 'ش', 'sh'],
+        'ظ': ['ظ', 'z'],
+        'ط': ['ط', 't'],
+        'ز': ['ز', 'z'],
+        'ع': ['ع', '3'],
+        'غ': ['غ', 'g'],
+    }
+
+    # استبدال الأحرف
+    for i in range(len(token)):
+        char = token[i].lower()
+        if char in substitutions:
+            for sub in substitutions[char]:
+                new_token = token[:i] + sub + token[i+1:]
+                variations.add(new_token)
+
+    # تغيير الحالة للحروف اللاتينية فقط
+    if any(c.isalpha() and c.isascii() for c in token):
+        variations.add(token.upper())
+        variations.add(token.lower())
+        variations.add(token.swapcase())
+
+    # إضافة تشكيلات للحروف العربية
+    variations.add(token.replace('ا', 'أ'))
+    variations.add(token.replace('ي', 'ى'))
+    
+    # إضافة لاحقات وبادئات
+    common_suffixes = [
+        '!', '123', '2023', '1234', '!@#', '00',
+        '2024', '2025', '2026', '2027', '2028',
+        'مرحبا', 'Admin', 'admin', 'المدير', 'مدير', '123'
+    ]
+    common_prefixes = [
+        '!', '1', 'admin', 'user', 'Admin',
+        'مرحبا', 'admin', 'المدير', 'مدير'
+    ]
+
+    for suffix in common_suffixes:
+        variations.add(token + suffix)
+    for prefix in common_prefixes:
+        variations.add(prefix + token)
+
+    return variations
+
+def main():
+    input_str = input("أدخل كلمات/أرقام مفصولة بمسافات (بالعربية أو اللاتينية): ")
+    tokens = input_str.split()
+
+    # توليد التغيرات
+    token_variations = [generate_token_variations(t) for t in tokens]
+
+    all_passwords = set()
+    max_passwords = 1000000  # حد أقصى لعدد الكلمات
+
+    # توليد التوافيق
+    for r in range(1, len(tokens) + 1):
+        for indices in itertools.combinations(range(len(tokens)), r):
+            for combo in itertools.product(*[token_variations[i] for i in indices]):
+                password = ''.join(combo)
+                all_passwords.add(password)
+                if len(all_passwords) >= max_passwords:
+                    print("Limit reached. Saving...")
+                    break
+            if len(all_passwords) >= max_passwords:
+                break
+        if len(all_passwords) >= max_passwords:
+            break
+
+    # حفظ النتائج في ملف مع دعم للعربية
+    with open('generated_passwords.txt', 'w', encoding='utf-8') as f:
+        for pwd in all_passwords:
+            f.write(f"{pwd}\n")
+
+    print(f"تم حفظ {len(all_passwords)} كلمة مرور في 'generated_passwords.txt'.")
+
+if __name__ == "__main__":
+    main()
